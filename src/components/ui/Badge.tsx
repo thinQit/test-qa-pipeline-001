@@ -1,22 +1,26 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-type BadgeProps = React.HTMLAttributes<HTMLSpanElement>;
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  variant?: 'default' | 'success' | 'warning';
+}
 
-const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(function Badge(
-  { className, ...props },
-  ref
-) {
+const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(({ className, variant = 'default', ...props }, ref) => {
+  const variants: Record<BadgeProps['variant'], string> = {
+    default: 'bg-gray-100 text-gray-900',
+    success: 'bg-green-100 text-green-800',
+    warning: 'bg-yellow-100 text-yellow-800'
+  };
+
   return (
     <span
       ref={ref}
-      className={cn(
-        'inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground',
-        className
-      )}
+      className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', variants[variant], className)}
       {...props}
     />
   );
 });
+
+Badge.displayName = 'Badge';
 
 export default Badge;

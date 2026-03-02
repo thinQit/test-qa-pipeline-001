@@ -1,40 +1,30 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-type CardProps = React.HTMLAttributes<HTMLDivElement>;
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
-  { className, ...props },
-  ref
-) {
-  return (
-    <div
-      ref={ref}
-      className={cn('rounded-lg border border-border bg-card text-card-foreground shadow-sm', className)}
-      {...props}
-    />
-  );
-});
+const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('rounded-lg border border-gray-200 bg-white shadow-sm', className)} {...props} />
+));
+Card.displayName = 'Card';
 
-const CardHeader = React.forwardRef<HTMLDivElement, CardProps>(function CardHeader(
-  { className, ...props },
-  ref
-) {
-  return <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />;
-});
+export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('border-b border-gray-100 px-6 py-4', className)} {...props} />
+  )
+);
+CardHeader.displayName = 'CardHeader';
 
-const CardContent = React.forwardRef<HTMLDivElement, CardProps>(function CardContent(
-  { className, ...props },
-  ref
-) {
-  return <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />;
-});
+export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => <div ref={ref} className={cn('px-6 py-4', className)} {...props} />
+);
+CardContent.displayName = 'CardContent';
 
-const CardFooter = React.forwardRef<HTMLDivElement, CardProps>(function CardFooter(
-  { className, ...props },
-  ref
-) {
-  return <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />;
-});
+export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('border-t border-gray-100 px-6 py-4', className)} {...props} />
+  )
+);
+CardFooter.displayName = 'CardFooter';
 
-export { Card as default, CardHeader, CardContent, CardFooter };
+export default Card;
