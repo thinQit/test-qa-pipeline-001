@@ -1,30 +1,29 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+import type { HTMLAttributes } from 'react';
+import React from 'react';
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
+type CardProps = HTMLAttributes<HTMLDivElement>;
 
-const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('rounded-lg border border-gray-200 bg-white shadow-sm', className)} {...props} />
-));
-Card.displayName = 'Card';
+type CardSectionProps = HTMLAttributes<HTMLDivElement>;
 
-export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('border-b border-gray-100 px-6 py-4', className)} {...props} />
-  )
-);
-CardHeader.displayName = 'CardHeader';
+export default function Card({ className, ...props }: CardProps) {
+  const classes = ['rounded-lg border border-border bg-white shadow-sm', className]
+    .filter(Boolean)
+    .join(' ');
 
-export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => <div ref={ref} className={cn('px-6 py-4', className)} {...props} />
-);
-CardContent.displayName = 'CardContent';
+  return <div className={classes} {...props} />;
+}
 
-export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('border-t border-gray-100 px-6 py-4', className)} {...props} />
-  )
-);
-CardFooter.displayName = 'CardFooter';
+export function CardHeader({ className, ...props }: CardSectionProps) {
+  const classes = ['border-b border-border px-6 py-4', className].filter(Boolean).join(' ');
+  return <div className={classes} {...props} />;
+}
 
-export default Card;
+export function CardContent({ className, ...props }: CardSectionProps) {
+  const classes = ['px-6 py-4', className].filter(Boolean).join(' ');
+  return <div className={classes} {...props} />;
+}
+
+export function CardFooter({ className, ...props }: CardSectionProps) {
+  const classes = ['border-t border-border px-6 py-4', className].filter(Boolean).join(' ');
+  return <div className={classes} {...props} />;
+}
