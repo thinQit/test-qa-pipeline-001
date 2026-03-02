@@ -1,3 +1,17 @@
-export default function Input(props: Record<string, unknown>) {
-  return <div className="p-4">{/* Input */}</div>;
-}
+import * as React from 'react';
+
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className = '', ...props }, ref) => {
+  return (
+    <input
+      ref={ref}
+      className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${className}`}
+      {...props}
+    />
+  );
+});
+
+Input.displayName = 'Input';
+
+export default Input;

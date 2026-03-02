@@ -1,25 +1,33 @@
-import { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import * as React from 'react';
 
-interface CardProps {
-  children: ReactNode;
-  className?: string;
-}
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-export function Card({ children, className }: CardProps) {
-  return <div className={cn('rounded-lg border border-border bg-white shadow-sm', className)}>{children}</div>;
-}
+const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className = '', ...props }, ref) => (
+  <div ref={ref} className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`} {...props} />
+));
+Card.displayName = 'Card';
 
-export function CardHeader({ children, className }: CardProps) {
-  return <div className={cn('border-b border-border px-6 py-4', className)}>{children}</div>;
-}
+export interface CardSectionProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-export function CardContent({ children, className }: CardProps) {
-  return <div className={cn('px-6 py-4', className)}>{children}</div>;
-}
+export const CardHeader = React.forwardRef<HTMLDivElement, CardSectionProps>(
+  ({ className = '', ...props }, ref) => (
+    <div ref={ref} className={`flex flex-col space-y-1.5 p-6 ${className}`} {...props} />
+  )
+);
+CardHeader.displayName = 'CardHeader';
 
-export function CardFooter({ children, className }: CardProps) {
-  return <div className={cn('border-t border-border px-6 py-3', className)}>{children}</div>;
-}
+export const CardContent = React.forwardRef<HTMLDivElement, CardSectionProps>(
+  ({ className = '', ...props }, ref) => (
+    <div ref={ref} className={`p-6 pt-0 ${className}`} {...props} />
+  )
+);
+CardContent.displayName = 'CardContent';
+
+export const CardFooter = React.forwardRef<HTMLDivElement, CardSectionProps>(
+  ({ className = '', ...props }, ref) => (
+    <div ref={ref} className={`flex items-center p-6 pt-0 ${className}`} {...props} />
+  )
+);
+CardFooter.displayName = 'CardFooter';
 
 export default Card;
