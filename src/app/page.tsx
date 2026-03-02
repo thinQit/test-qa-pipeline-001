@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'completed' | 'active'>('all');
 
@@ -53,175 +54,145 @@ export default function DashboardPage() {
 
   const handleCreate = async () => {
     if (!title.trim()) return;
-    const optimistic: Task = {
-      id: `temp-${Date.now()}`,
-      title,
-      description: null,
-      completed: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      dueDate: null
-    };
-    setTasks((prev) => [optimistic, ...prev]);
-    setTitle('');
-    const { data, error: createError } = await api.post<{ task: Task }>('/api/tasks', { title });
-    if (createError || !data) {
-      toast(createError || 'Failed to create task', 'error');
-      setTasks((prev) => prev.filter((t) => t.id !== optimistic.id));
+    const { error: createError } = await api.post('/api/tasks', {
+      title: title.trim(),
+      description: description.trim() ? description.trim() : null
+    });
+    if (createError) {
+      toast(createError, 'error');
       return;
     }
-    setTasks((prev) => prev.map((t) => (t.id === optimistic.id ? data.task : t)));
+    setTitle('');
+    setDescription('');
+    fetchTasks();
   };
 
-  const toggleComplete = async (task: Task) => {
-    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, completed: !t.completed } : t)));
-    const { data, error: toggleError } = await api.patch<{ task: Task }>(`/api/tasks/${task.id}/complete`, {
+  const handleToggle = async (task: Task) => {
+    const { error: updateError } = await api.patch(`/api/tasks/${task.id}`, {
       completed: !task.completed
     });
-    if (toggleError || !data) {
-      toast(toggleError || 'Failed to update task', 'error');
-      setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
+    if (updateError) {
+      toast(updateError, 'error');
       return;
     }
-    setTasks((prev) => prev.map((t) => (t.id === task.id ? data.task : t)));
+    fetchTasks();
   };
 
   const handleDelete = async (task: Task) => {
-    const previous = tasks;
-    setTasks((prev) => prev.filter((t) => t.id !== task.id));
-    const { error: deleteError } = await api.delete<{ success: boolean }>(`/api/tasks/${task.id}`);
+    const { error: deleteError } = await api.delete(`/api/tasks/${task.id}`);
     if (deleteError) {
       toast(deleteError, 'error');
-      setTasks(previous);
+      return;
     }
+    fetchTasks();
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Task Dashboard</h1>
-          <p className="text-sm text-secondary">Track your tasks and stay productive.</p>
-          <div className="mt-2 flex flex-wrap gap-2 text-xs text-secondary">
-            <span>Active: {stats.active}</span>
-            <span>Completed: {stats.completed}</span>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Track your tasks and stay on top of upcoming work.
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/tasks/new">
-            <Button variant="secondary">Create Task</Button>
-          </Link>
-        </div>
+        <Link href="/profile" className="text-sm font-medium text-primary">
+          View profile
+        </Link>
       </div>
 
       <Card>
         <CardHeader>
-          <h2 className="text-lg font-semibold">Quick Create</h2>
+          <h2 className="text-lg font-semibold">Create a task</h2>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-3 md:flex-row">
-            <Input
-              label="Task title"
-              placeholder="Add a new task"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={handleCreate} className="mt-1 md:mt-6">
-              Add
-            </Button>
-          </div>
+        <CardContent className="space-y-3">
+          <Input
+            placeholder="Task title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+          />
+          <Input
+            placeholder="Description (optional)"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
         </CardContent>
+        <CardFooter className="flex items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">Keep it short and actionable.</p>
+          <Button onClick={handleCreate}>Add task</Button>
+        </CardFooter>
       </Card>
 
       <Card>
         <CardHeader>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Tasks</h2>
-              <p className="text-sm text-secondary">{tasks.length} total</p>
-            </div>
-            <div className="flex flex-col gap-2 md:flex-row md:items-center">
-              <Input
-                placeholder="Search tasks"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                aria-label="Search tasks"
-              />
-              <div className="flex gap-2">
-                {(['all', 'active', 'completed'] as const).map((value) => (
-                  <Button
-                    key={value}
-                    variant={filter === value ? 'primary' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter(value)}
-                  >
-                    {value}
-                  </Button>
-                ))}
-              </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Your tasks</h2>
+            <div className="flex items-center gap-2">
+              <Badge>Active: {stats.active}</Badge>
+              <Badge>Completed: {stats.completed}</Badge>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-sm text-secondary">Loading tasks...</p>
-          ) : error ? (
-            <div className="space-y-3">
-              <p className="text-sm text-error">{error}</p>
-              <Button variant="outline" size="sm" onClick={fetchTasks}>
-                Try again
+        <CardContent className="space-y-4">
+          <Input
+            placeholder="Search tasks"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          <div className="flex flex-wrap gap-2">
+            {(['all', 'active', 'completed'] as const).map((value) => (
+              <Button
+                key={value}
+                onClick={() => setFilter(value)}
+                className={cn(
+                  'px-3 py-1 text-sm',
+                  filter === value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground'
+                )}
+              >
+                {value === 'all' ? 'All' : value.charAt(0).toUpperCase() + value.slice(1)}
               </Button>
-            </div>
-          ) : filteredTasks.length === 0 ? (
-            <p className="text-sm text-secondary">No tasks found.</p>
-          ) : (
-            <ul className="space-y-3">
-              {filteredTasks.map((task) => (
-                <li
-                  key={task.id}
-                  className="flex flex-col gap-2 rounded-md border border-border p-4 md:flex-row md:items-center md:justify-between"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        aria-label={task.completed ? 'Mark task incomplete' : 'Mark task complete'}
-                        onClick={() => toggleComplete(task)}
-                        className={cn(
-                          'h-5 w-5 rounded border border-border transition-colors',
-                          task.completed ? 'bg-success' : 'bg-white'
-                        )}
-                      />
-                      <Link href={`/tasks/${task.id}`} className="font-medium hover:underline">
-                        {task.title}
-                      </Link>
-                      <Badge variant={task.completed ? 'success' : 'secondary'}>
-                        {task.completed ? 'Completed' : 'Active'}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-secondary">
-                      Created {task.createdAt ? formatDate(task.createdAt) : 'N/A'}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Link href={`/tasks/${task.id}`}>
-                      <Button variant="outline" size="sm">
-                        View
-                      </Button>
-                    </Link>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(task)}>
-                      Delete
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+            ))}
+          </div>
         </CardContent>
         <CardFooter>
-          <p className="text-xs text-secondary">Tip: Use the filters to find tasks faster.</p>
+          {loading && <p className="text-sm text-muted-foreground">Loading tasks…</p>}
+          {!loading && error && <p className="text-sm text-destructive">{error}</p>}
+          {!loading && !error && filteredTasks.length === 0 && (
+            <p className="text-sm text-muted-foreground">No tasks match the current filter.</p>
+          )}
         </CardFooter>
       </Card>
-    </div>
+
+      <div className="space-y-3">
+        {filteredTasks.map((task) => (
+          <Card key={task.id}>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-base font-semibold">{task.title}</h3>
+                  {task.description && (
+                    <p className="text-sm text-muted-foreground">{task.description}</p>
+                  )}
+                </div>
+                <Badge>{task.completed ? 'Completed' : 'Active'}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              {task.dueDate ? `Due ${formatDate(task.dueDate)}` : 'No due date'}
+            </CardContent>
+            <CardFooter className="flex flex-wrap gap-2">
+              <Button onClick={() => handleToggle(task)}>
+                {task.completed ? 'Mark active' : 'Mark done'}
+              </Button>
+              <Button onClick={() => handleDelete(task)} className="bg-destructive text-white">
+                Delete
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    </main>
   );
 }
