@@ -1,33 +1,25 @@
-import * as React from 'react';
+import type { HTMLAttributes } from 'react';
+import { cn } from '@/lib/utils';
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
+export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn('rounded-lg border border-border bg-background shadow-sm', className)}
+      {...props}
+    />
+  );
+}
 
-const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className = '', ...props }, ref) => (
-  <div ref={ref} className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`} {...props} />
-));
-Card.displayName = 'Card';
+export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('border-b border-border px-6 py-4', className)} {...props} />;
+}
 
-export interface CardSectionProps extends React.HTMLAttributes<HTMLDivElement> {}
+export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('px-6 py-4', className)} {...props} />;
+}
 
-export const CardHeader = React.forwardRef<HTMLDivElement, CardSectionProps>(
-  ({ className = '', ...props }, ref) => (
-    <div ref={ref} className={`flex flex-col space-y-1.5 p-6 ${className}`} {...props} />
-  )
-);
-CardHeader.displayName = 'CardHeader';
-
-export const CardContent = React.forwardRef<HTMLDivElement, CardSectionProps>(
-  ({ className = '', ...props }, ref) => (
-    <div ref={ref} className={`p-6 pt-0 ${className}`} {...props} />
-  )
-);
-CardContent.displayName = 'CardContent';
-
-export const CardFooter = React.forwardRef<HTMLDivElement, CardSectionProps>(
-  ({ className = '', ...props }, ref) => (
-    <div ref={ref} className={`flex items-center p-6 pt-0 ${className}`} {...props} />
-  )
-);
-CardFooter.displayName = 'CardFooter';
+export function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('border-t border-border px-6 py-4', className)} {...props} />;
+}
 
 export default Card;
